@@ -1,15 +1,17 @@
+# -*- coding: utf-8 -*-
 # Author: Edison Suen
 # Description: Scrape "The Weather Network" to extract the 7 day forecast
 
-# -*- coding: utf-8 -*-
 import requests
 import pandas as pd
 import re
+from listofcountries import country_dict
 from bs4 import BeautifulSoup
 
 
-country = raw_input("CAD or US?: ")
-province = raw_input("Please enter a province: ")
+country = raw_input("Please enter the country: ")
+country = country.upper()
+province = raw_input("Please enter a province/state: ")
 province = province.replace(' ', '-').lower()
 city = raw_input("Please enter a city: ")
 city = city.replace(' ', '-').lower()
@@ -17,12 +19,14 @@ units = raw_input("Metric or Imperial? ")
 units = units.title()
 print("\n")
 
-if country.upper() == "CAD":
-	base_url = "https://www.theweathernetwork.com/ca/weather/"
 
-elif country.upper() == "US":
-	base_url = "https://www.theweathernetwork.com/us/weather/"
+def get_value(dic,value):
+    for name in dic:
+        if dic[name] == value:
+            return name.lower()
 
+country_abbrev = get_value(country_dict,country)
+base_url = "https://www.theweathernetwork.com/{}/weather/".format(country_abbrev)
 headers = {'User-agent': "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36"}
 website = requests.get((base_url+"{}"+"/"+"{}").format(province,city),headers=headers)
 soup = BeautifulSoup(website.content, 'html.parser')
@@ -84,10 +88,10 @@ weather = pd.DataFrame({
 	"Temp": temp,
 	"Night": temp_night,
 	"Rain   ": rain,
-	"    Feels like": feels_arr
+	"  Feels like": feels_arr
 	})
 
-weather = weather[["Days", "Temp", "Night", "Rain   ", "    Feels like"]]
+weather = weather[["Days", "  Feels like", "Temp", "Night", "Rain   "]]
 weather.index += 1
 
 weather["Days"] = weather["Days"].map(lambda x: x.lstrip('\t'))
@@ -99,14 +103,11 @@ else:
 
 weather["Rain   "] = weather["Rain   "].map(lambda x: x.lstrip('\t').rstrip('\t'))
 if units == "Metric":
-	weather["    Feels like"] = weather["    Feels like"].map(lambda x: x.lstrip("<span>").rstrip("</span>")+u"\u00b0 " + "C")
+	weather["  Feels like"] = weather["  Feels like"].map(lambda x: x.lstrip("<span>").rstrip("</span>")+u"\u00b0 " + "C")
 else:
-	weather["    Feels like"] = weather["    Feels like"].map(lambda x: x.lstrip("<span>").rstrip("</span>")+u"\u00b0" + "F")
+	weather["  Feels like"] = weather["  Feels like"].map(lambda x: x.lstrip("<span>").rstrip("</span>")+u"\u00b0" + "F")
 ###### END DATA FRAME ######
 
 ###### RUN ######
 print(weather)
 ###### END RUN ######
-
-
-
