@@ -43,8 +43,11 @@ temp_celcius = column.find(class_="chart-daily-temp seven_days_metric seven_days
 temp_feh = column.find(class_="chart-daily-temp seven_days_imperial seven_days_imperial_f").get_text()
 night_celcius = column.find(class_="chart-daily-temp-low seven_days_metric seven_days_metric_c").get_text()
 night_feh = column.find(class_="chart-daily-temp-low seven_days_imperial seven_days_imperial_f").get_text()
-rain_metric = column.find(class_="fx-details seven_days_metric rain seven_days_metric_kmh").get_text()
-rain_imperial = column.find(class_="fx-details seven_days_imperial rain seven_days_imperial_mph").get_text()
+try:
+	rain_metric = column.find(class_="fx-details seven_days_metric rain seven_days_metric_kmh").get_text()
+	rain_imperial = column.find(class_="fx-details seven_days_imperial rain seven_days_imperial_mph").get_text()
+except AttributeError:
+	pass
 wind_metric = column.find(class_="fx-details seven_days_metric seven_days_metric_kmh wind")
 wind_imperial = column.find(class_="fx-details seven_days_imperial seven_days_imperial_mph wind")
 
@@ -83,15 +86,27 @@ elif units == "Imperial":
 ###### END CONDITIONALS ######
 
 ###### DATA FRAME ######
-weather = pd.DataFrame({
-	"Days": days,
-	"Temp": temp,
-	"Night": temp_night,
-	"Rain   ": rain,
-	"  Feels like": feels_arr
-	})
+try:
+	weather = pd.DataFrame({
+		"Days": days,
+		"Temp": temp,
+		"Night": temp_night,
+		"Rain   ": rain,
+		"  Feels like": feels_arr
+		})
+except:
+	weather = pd.DataFrame({
+		"Days": days,
+		"Temp": temp,
+		"Night": temp_night,
+		"  Feels like": feels_arr
+		})	
 
-weather = weather[["Days", "  Feels like", "Temp", "Night", "Rain   "]]
+try:
+	weather = weather[["Days", "  Feels like", "Temp", "Night", "Rain   "]]
+except:
+	weather = weather[["Days", "  Feels like", "Temp", "Night"]]
+
 weather.index += 1
 
 weather["Days"] = weather["Days"].map(lambda x: x.lstrip('\t'))
@@ -101,7 +116,11 @@ if units == "Metric":
 else:
 	weather["Night"] = weather["Night"].map(lambda x: x.lstrip('\t') + "F")
 
-weather["Rain   "] = weather["Rain   "].map(lambda x: x.lstrip('\t').rstrip('\t'))
+try:
+	weather["Rain   "] = weather["Rain   "].map(lambda x: x.lstrip('\t').rstrip('\t'))
+except:
+	pass
+
 if units == "Metric":
 	weather["  Feels like"] = weather["  Feels like"].map(lambda x: x.lstrip("<span>").rstrip("</span>")+u"\u00b0 " + "C")
 else:
